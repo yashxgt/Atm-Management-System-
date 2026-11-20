@@ -408,75 +408,6 @@ def show_history(atm, acc_no):
         st.write("No transactions yet.")
 
 
-
-def show_python_concepts(atm, acc_no):
-    """Demonstrate Experiential 3-7 topics using real ATM data."""
-    st.subheader("Python Concepts Demo (Experiential 3-7)")
-    st.write("This page demonstrates the additional Python topics using your ATM account and transaction history.")
-
-    # String slicing: hide most of the account number before displaying it.
-    masked_account = acc_no[:2] + "*" * max(0, len(acc_no) - 4) + acc_no[-2:]
-    st.write(f"**String slicing:** Masked account number: `{masked_account}`")
-
-    rows = atm.history(acc_no)
-
-    # enumerate(): show a serial number with each transaction.
-    st.markdown("**enumerate(): Numbered transaction history**")
-    if rows:
-        numbered_rows = [
-            {"S.No.": number, **row}
-            for number, row in enumerate(rows, start=1)
-        ]
-        st.dataframe(numbered_rows, use_container_width=True)
-    else:
-        st.info("No transactions are available yet. Make a deposit or withdrawal to see this example.")
-
-    # while + continue + break: inspect at most 10 recent transactions,
-    # skipping unsuccessful transactions while calculating successful total.
-    successful_total = 0
-    successful_count = 0
-    index = 0
-    inspected_count = 0
-    while index < len(rows):
-        if inspected_count >= 10:
-            break
-        row = rows[index]
-        index += 1
-        inspected_count += 1
-        if row.get("status") != "SUCCESS":
-            continue
-        successful_total += int(row.get("amount") or 0)
-        successful_count += 1
-
-    st.markdown("**while, break and continue: Recent successful transactions**")
-    st.write(f"Checked up to 10 recent transactions: **{inspected_count}**")
-    st.write(f"Successful transactions counted: **{successful_count}**")
-    st.write(f"Total amount in successful transactions: **Rs. {successful_total:,}**")
-
-    # zip(): pair each denomination with the number of notes for a sample amount.
-    sample_amount = 1700
-    sample_notes = atm.notes_for(sample_amount)
-    note_counts = [sample_notes.get(denomination, 0) for denomination in DENOMINATIONS]
-    denomination_pairs = list(zip(DENOMINATIONS, note_counts))
-    st.markdown("**zip(): Pair ATM denominations with note counts**")
-    st.write(f"For a sample amount of Rs. {sample_amount:,}: `{denomination_pairs}`")
-
-    # set: collect unique transaction types from the account history.
-    unique_types = sorted({row.get("type", "") for row in rows if row.get("type")})
-    st.markdown("**Set: Unique transaction types**")
-    st.write(unique_types if unique_types else "No transaction types available yet.")
-
-    # pass: a deliberate placeholder for a future PENDING transaction status.
-    pending_count = 0
-    for row in rows:
-        if row.get("status") == "PENDING":
-            pass  # No action is required for pending records in this demo.
-            pending_count += 1
-    st.markdown("**pass: Placeholder for pending transactions**")
-    st.write(f"Pending transactions found: **{pending_count}** (the current ATM workflow does not create pending records).")
-
-    st.caption("These examples are connected to your actual ATM transaction history; zip() uses a sample amount so it can be demonstrated even before transactions exist.")
-
 def show_tests():
     st.subheader("Test cases")
     if st.button("Run all tests"):
@@ -519,7 +450,7 @@ def main():
     st.sidebar.success(f"{atm.accounts[acc_no]['name']}  (A/c {acc_no})")
     page = st.sidebar.radio("Menu", ["Check balance", "Withdraw", "Deposit",
                                      "Change PIN", "Transaction history",
-                                     "Test cases", "Python Concepts Demo"])
+                                     "Test cases"])
     if st.sidebar.button("Exit / Logout"):
         st.session_state.acc_no = None
         st.rerun()
@@ -534,10 +465,8 @@ def main():
         show_change_pin(atm, acc_no)
     elif page == "Transaction history":
         show_history(atm, acc_no)
-    elif page == "Test cases":
-        show_tests()
     else:
-        show_python_concepts(atm, acc_no)
+        show_tests()
 
 
 if __name__ == "__main__":
